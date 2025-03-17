@@ -1,0 +1,16 @@
+.login-container {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: white;
+  }
+  
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border-radius: 10px;
+  }
+  
+  h2 span {
+    color: red;
+  }
+  
