@@ -1,17 +1,27 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Container, Card } from "react-bootstrap";
+import { Button, Form, Container, Card, Alert } from "react-bootstrap";
+import API from "../api"; // Dodajemy API do komunikacji z backendem
 import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(null); // Obsługa błędów logowania
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate("/dashboard");
+    setError(null);
+
+    try {
+      const res = await API.post("/login", { username: email, password });
+      localStorage.setItem("token", res.data.token); // Zapisujemy token JWT
+      navigate("/dashboard"); // Przekierowanie po zalogowaniu
+    } catch (err) {
+      setError("Nieprawidłowy email lub hasło!");
+    }
   };
 
   return (
@@ -28,15 +38,17 @@ const Login = () => {
             Trener<span>AI</span>
           </h2>
 
+          {error && <Alert variant="danger">{error}</Alert>} {/* Komunikat o błędzie */}
+
           <Form onSubmit={handleLogin}>
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" placeholder="Wpisz email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Form.Control type="email" placeholder="Wpisz email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Hasło</Form.Label>
-              <Form.Control type="password" placeholder="Wpisz hasło" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Form.Control type="password" placeholder="Wpisz hasło" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </Form.Group>
 
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
