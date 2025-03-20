@@ -1,6 +1,12 @@
 # TrenerAI_app
 Repozytorium z backendem/frontendem aplikacji
 
+### Poziom Aktywnosci
+- 1.2 -	Siedzący tryb życia	| Brak aktywności, praca biurowa
+- 1.375 - Lekka aktywność	| Ćwiczenia 1-3x w tygodniu
+- 1.55 - Średnia aktywność |	Ćwiczenia 3-5x w tygodniu
+- 1.725 - Wysoka aktywność  |	Ćwiczenia 6-7x w tygodniu
+- 1.9 -	Bardzo wysoka aktywność |	Sportowiec, praca fizyczna
 
 # Backend
 ### Wymagania
