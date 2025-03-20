@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user import User, UserInfo
-from app.schemas.user import UserCreate, UserInfoCreate
+from app.schemas.user import UserCreate, UserInfoCreate, UserUpdate
 
 def create_user_info(db: Session, user_id: int, info_data: UserInfoCreate):
     """Dodanie informacji o użytkowniku"""
@@ -13,6 +13,19 @@ def create_user_info(db: Session, user_id: int, info_data: UserInfoCreate):
 def get_user_info(db: Session, user_id: int):
     """Pobranie informacji o użytkowniku"""
     return db.query(UserInfo).filter(UserInfo.user_id == user_id).first()
+
+def update_user(db: Session, user_id: int, user_data: UserUpdate):
+    """Aktualizacja danych uzytkownika"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return None
+    
+    for key, value in user_data.dict(exclude_unset=True).items():
+        setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
 
 def update_user_info(db: Session, user_id: int, info_data: UserInfoCreate):
     """Aktualizacja informacji o użytkowniku"""
