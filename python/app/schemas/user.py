@@ -12,3 +12,18 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserInfoBase(BaseModel):
+    age: Optional[int] = None
+    weight: Optional[float] = None
+    height: Optional[float] = None
+    gender: Optional[str] = None
+
+class UserInfoCreate(UserInfoBase):
+    pass
+
+class UserInfoOut(UserInfoBase):
+    id: int
+
+    class Config:
+        from_attributes = True
