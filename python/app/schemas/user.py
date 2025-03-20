@@ -13,6 +13,9 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+
 class UserInfoBase(BaseModel):
     age: Optional[int] = None
     weight: Optional[float] = None
