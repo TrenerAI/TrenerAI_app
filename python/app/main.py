@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import auth, user
+from app.routes import auth, user, metrics
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.database import Base, engine
 from app.config.settings import settings
@@ -26,7 +26,8 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(user.router, prefix="/api", tags=["UserInfo"])
+app.include_router(user.router, prefix="/user", tags=["UserInfo"])
+app.include_router(metrics.router, prefix="/metrics", tags=["Metrics"])
 
 if __name__ == "__main__" or getattr(sys, "frozen", False):
     uvicorn.run(app, host="127.0.0.1", port=8000)
