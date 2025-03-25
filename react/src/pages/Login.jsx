@@ -1,64 +1,81 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Button, Form, Container, Card, Alert } from "react-bootstrap";
-import API from "../api"; // Dodajemy API do komunikacji z backendem
+import API from "../api";
 import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null); // Obsługa błędów logowania
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
-
     try {
       const res = await API.post("/login", { username: email, password });
-      localStorage.setItem("token", res.data.token); // Zapisujemy token JWT
-      navigate("/dashboard"); // Przekierowanie po zalogowaniu
+      localStorage.setItem("token", res.data.token);
+      navigate("/dashboard");
     } catch (err) {
-      setError("Nieprawidłowy email lub hasło!");
+      alert("Błędny login lub hasło");
     }
   };
 
   return (
     <motion.div
-      className="login-container"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.8 }}
+      className="login-wrapper"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
-      <Container className="d-flex flex-column align-items-center justify-content-center vh-100">
-        <Card as={motion.div} initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} className="p-4 login-card">
-          <h2 className="text-center">
-            Trener<span>AI</span>
-          </h2>
+      <div className="login-card">
+        <h1 className="logo-title">
+          Trener<span className="logo-accent">AI</span>
+        </h1>
 
-          {error && <Alert variant="danger">{error}</Alert>} {/* Komunikat o błędzie */}
+        <form className="login-form" onSubmit={handleLogin}>
+          <div className="form-group">
+            <input
+              type="email"
+              placeholder="TrenerAI@wp.pl"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <span className="icon">@</span>
+          </div>
 
-          <Form onSubmit={handleLogin}>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control type="email" placeholder="Wpisz email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </Form.Group>
+          <div className="form-group">
+            <input
+              type="password"
+              placeholder="Hasło"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span className="icon">🔒</span>
+          </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Hasło</Form.Label>
-              <Form.Control type="password" placeholder="Wpisz hasło" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </Form.Group>
+          <div className="options">
+            <label>
+              <input type="checkbox" /> Zapamiętaj mnie
+            </label>
+            <span className="forgot-password">Zapomniane hasło</span>
+          </div>
 
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button variant="danger" type="submit" className="w-100">
-                Zaloguj
-              </Button>
-            </motion.div>
-          </Form>
-        </Card>
-      </Container>
+          <button type="submit" className="login-btn">
+            Zaloguj
+          </button>
+        </form>
+
+        <div className="social-login">
+          <img src="/img/google-icon.png" alt="Google login" />
+          <img src="/img/facebook-icon.png" alt="Facebook login" />
+        </div>
+
+        <p className="register-link">
+          Nie posiadasz konta? <span>Zarejestruj się</span>
+        </p>
+      </div>
     </motion.div>
   );
 };

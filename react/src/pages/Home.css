@@ -1,64 +1,73 @@
-.home-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background: url("/img/strongman.png") no-repeat center;
-    background-size: contain; /* Dostosowuje obraz do ekranu */
-    background-position: center bottom; /* Ustawia dół obrazka na środek */
-    background-attachment: fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Styl główny dla strony startowej */
+.start-page {
+  background-color: #121730;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 2rem;
+}
+
+/* Sekcja z treścią i grafiką */
+.hero-section {
+  text-align: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+/* Grafika główna */
+.hero-image-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 2rem auto;
+  z-index: 0;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Teksty i przycisk pod grafiką */
+.hero-text-below {
+  text-align: center;
+  color: #ffffff;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-bottom: 1.2rem;
+}
+
+/* Przycisk startowy */
+.start-btn {
+  background-color: #ff4c61;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.6rem 2rem;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Responsywność */
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
   }
-  
-  /* Overlay z napisem i przyciskiem */
-  .overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: white;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
+  .start-btn {
+    font-size: 1.2rem;
+    padding: 0.75rem 2.5rem;
   }
-  
-  /* Dostosowanie na mniejsze ekrany */
-  @media (max-width: 768px) {
-    .home-container {
-      background-size: cover; /* Na telefonach lepsze wypełnienie */
-      background-position: center;
-    }
-  
-    .overlay {
-      width: 95%;
-      padding: 15px;
-    }
-  
-    .title {
-      font-size: 35px;
-    }
-  
-    button {
-      font-size: 18px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .overlay {
-      top: 55%;
-      padding: 10px;
-    }
-  
-    .title {
-      font-size: 30px;
-    }
-  
-    button {
-      font-size: 16px;
-    }
-  }
-  
+}
