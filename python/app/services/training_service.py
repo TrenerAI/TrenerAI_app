@@ -1,149 +1,182 @@
+import os
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.models.training import TrainingPlan
 from app.models.exercise import Exercise
 from app.schemas.training import TrainingPlanCreate
 import random
-import json
-import math
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from tempfile import NamedTemporaryFile
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
-# 🏋️‍♂️ Maksymalna liczba serii na tydzień dla każdej partii mięśniowej
-MUSCLE_VOLUME_LIMITS = {
-    "Legs": (12, 24),
-    "Back": (12, 24),
-    "Chest": (10, 22),
-    "Shoulders": (10, 20),
-    "Biceps": (8, 16),
-    "Triceps": (8, 16),
-    "Core": (6, 15),
+FBW_MUSCLES = ["Chest", "Back", "Legs", "Shoulders", "Arms"]
+
+REP_RANGES = {
+    "Siła": {"COMPOUND": "4-6", "ISOLATION": "6-8"},
+    "Masa": {"COMPOUND": "6-10", "ISOLATION": "10-15"},
+    "Redukcja": {"COMPOUND": "12-15", "ISOLATION": "15-20"},
 }
 
-# 🔢 Maksymalna liczba serii w tygodniu dla różnych splitów
-SPLIT_VOLUME_LIMITS = {
-    "FBW": (10, 15),  # na partię
-    "PPL": (16, 22),  # na partię
-    "Góra-Dół": (14, 20),  # na partię
+SETS_BY_DIFFICULTY = {
+    "beginner": 3,
+    "intermediate": 4,
+    "advanced": 5,
 }
 
-# 🔀 Podział grup mięśniowych dla różnych splitów
-SPLIT_MAPPING = {
-    "FBW": ["Chest", "Back", "Legs", "Shoulders", "Arms"],
-    "PPL": {
-        "Push": ["Chest", "Shoulders", "Triceps"],
-        "Pull": ["Back", "Biceps"],
-        "Legs": ["Legs"]
-    },
-    "Góra-Dół": {
-        "Upper": ["Chest", "Back", "Shoulders", "Arms"],
-        "Lower": ["Legs"]
-    }
-}
+def get_exercise_type(exercise: Exercise) -> str:
+    raw_type = getattr(exercise, "exercise_type", "COMPOUND")
+    return raw_type.upper() if isinstance(raw_type, str) else "COMPOUND"
 
-def generate_training_plan(db: Session, user_id: int, plan_data: TrainingPlanCreate):
-    """Generowanie planu treningowego z uwzględnieniem limitu serii tygodniowych."""
+def generate_training_pdf(name: str, text_description: str) -> str:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    font_path = os.path.join(BASE_DIR, "..", "assets", "fonts", "DejaVuSans.ttf")
+    font_path = os.path.abspath(font_path)
+    pdfmetrics.registerFont(TTFont("DejaVu", font_path))
 
-    training_text = f"📅 **Plan treningowy: {plan_data.name}**\n"
-    training_text += f"🔹 Cel: {plan_data.goal}\n"
-    training_text += f"🔹 Split: {plan_data.split_type}\n"
-    training_text += f"🔹 Dni w tygodniu: {plan_data.days_per_week}\n"
-    training_text += f"🔹 Poziom: {plan_data.difficulty.capitalize()}\n\n"
+    temp = NamedTemporaryFile(delete=False, suffix=".pdf", prefix="training_", dir=".")
+    c = canvas.Canvas(temp.name, pagesize=A4)
+    width, height = A4
 
-    # 🔢 Limit serii na partię mięśniową dla danego splitu
-    min_weekly_volume, max_weekly_volume = SPLIT_VOLUME_LIMITS.get(plan_data.split_type, (10, 15))
+    c.setFont("DejaVu", 11)
+    c.setTitle(name)
+    margin = 40
+    y = height - margin
 
-    # 📊 Obliczamy liczbę serii na dzień
-    weekly_muscle_volume = {muscle: 0 for muscle in MUSCLE_VOLUME_LIMITS.keys()}
+    lines = text_description.split("\n")
+
+    for line in lines:
+        wrapped = split_text(line, 100)
+        for subline in wrapped:
+            c.drawString(margin, y, subline)
+            y -= 15
+            if y < margin:
+                c.showPage()
+                c.setFont("DejaVu", 11)
+                y = height - margin
+
+    c.save()
+    return temp.name
+
+def split_text(text, max_len):
+    words = text.split()
+    lines = []
+    line = ""
+    for word in words:
+        if len(line) + len(word) + 1 <= max_len:
+            line += " " + word if line else word
+        else:
+            lines.append(line)
+            line = word
+    if line:
+        lines.append(line)
+    return lines
+
+def generate_training_plan_demo_fbw(db: Session, user_id: int, plan_data: TrainingPlanCreate):
+    if plan_data.split_type != "FBW":
+        return JSONResponse(status_code=400, content={"error": "Wersja demo obsługuje tylko split FBW."})
+
+    goal_key = plan_data.goal.capitalize()
+    difficulty_key = plan_data.difficulty.lower()
+    used_exercise_ids = set()
+    training_plan_structure = []
+    arm_days_used = 0
 
     for day in range(plan_data.days_per_week):
-        training_text += f"**🗓️ Dzień {day+1}**\n"
+        day_plan = {"day": day + 1, "exercises": []}
+        exercises_in_day = 0
+        max_exercises = 6
+        min_exercises = 4
 
-        # Wybór partii mięśniowych na dany dzień
-        if plan_data.split_type == "FBW":
-            target_muscles = SPLIT_MAPPING["FBW"]
-        elif plan_data.split_type == "PPL":
-            target_muscles = list(SPLIT_MAPPING["PPL"].values())[day % 3]
-        elif plan_data.split_type == "Góra-Dół":
-            target_muscles = list(SPLIT_MAPPING["Góra-Dół"].values())[day % 2]
-        else:
-            target_muscles = []
+        for muscle in FBW_MUSCLES:
+            if exercises_in_day >= max_exercises:
+                break
 
-        day_exercises = []
-        for muscle in target_muscles:
-            muscle_name = muscle
-
-            # 🛠️ **Obsługa Arms → Biceps + Triceps**
             if muscle == "Arms":
-                biceps_exercises = db.query(Exercise).filter(
+                if plan_data.goal == "Siła" and arm_days_used >= 2:
+                    continue
+                elif plan_data.goal in {"Masa", "Redukcja"} and day % 2 != 0:
+                    continue
+
+            muscle_name = muscle
+            exercises = []
+
+            if muscle == "Arms":
+                biceps = db.query(Exercise).filter(
                     Exercise.muscle_group == "Biceps",
                     Exercise.difficulty == plan_data.difficulty
                 ).all()
-                triceps_exercises = db.query(Exercise).filter(
+                triceps = db.query(Exercise).filter(
                     Exercise.muscle_group == "Triceps",
                     Exercise.difficulty == plan_data.difficulty
                 ).all()
-
-                # Połącz ćwiczenia na biceps i triceps
-                exercises = biceps_exercises + triceps_exercises
-                muscle_name = "Biceps/Triceps"
+                exercises = biceps + triceps
             else:
                 exercises = db.query(Exercise).filter(
                     Exercise.muscle_group == muscle,
                     Exercise.difficulty == plan_data.difficulty
                 ).all()
 
-            # Jeśli mamy dostępne ćwiczenia, losujemy ich ilość zależnie od limitu serii
-            if exercises:
-                # 🛠️ **Ustalamy dostępną objętość tygodniową**
-                if muscle == "Arms":
-                    remaining_biceps_volume = max_weekly_volume - weekly_muscle_volume.get("Biceps", 0)
-                    remaining_triceps_volume = max_weekly_volume - weekly_muscle_volume.get("Triceps", 0)
-                    remaining_volume = min(remaining_biceps_volume, remaining_triceps_volume)
-                else:
-                    remaining_volume = max_weekly_volume - weekly_muscle_volume.get(muscle, 0)
+            exercises = [ex for ex in exercises if ex.id not in used_exercise_ids]
+            if not exercises:
+                continue
 
-                max_series_per_exercise = min(math.ceil(remaining_volume / plan_data.days_per_week), 5)
-                
-                selected_exercises = random.sample(exercises, min(len(exercises), 3))
-                day_exercises.extend(selected_exercises)
+            random.shuffle(exercises)
+            ex = exercises[0]
+            used_exercise_ids.add(ex.id)
 
-                for exercise in selected_exercises:
-                    reps_data = exercise.recommended_reps
-                    sets_data = exercise.recommended_sets
+            ex_type = get_exercise_type(ex)
+            reps = REP_RANGES[goal_key].get(ex_type, "10-12")
+            sets = SETS_BY_DIFFICULTY.get(difficulty_key, 4)
 
-                    if isinstance(reps_data, str):
-                        reps_data = json.loads(reps_data)
-                    if isinstance(sets_data, str):
-                        sets_data = json.loads(sets_data)
+            day_plan["exercises"].append({
+                "muscle": muscle_name,
+                "name": ex.name,
+                "sets": sets,
+                "reps": reps
+            })
+            exercises_in_day += 1
 
-                    recommended_reps = reps_data.get(plan_data.goal, "10-12")
-                    recommended_sets = min(int(sets_data.get(plan_data.difficulty, "3")), max_series_per_exercise)
+            if muscle == "Arms":
+                arm_days_used += 1
 
-                    # 🔄 **Aktualizujemy objętość dla Biceps i Triceps osobno**
-                    if muscle == "Arms":
-                        weekly_muscle_volume["Biceps"] += recommended_sets
-                        weekly_muscle_volume["Triceps"] += recommended_sets
-                    else:
-                        weekly_muscle_volume[muscle] += recommended_sets
+        if exercises_in_day < min_exercises:
+            continue
 
-                    training_text += f"💪 {muscle_name}: {exercise.name} | {recommended_sets}x{recommended_reps}\n"
+        training_plan_structure.append(day_plan)
 
-        if not day_exercises:
-            training_text += "🚨 Brak dostępnych ćwiczeń dla tego dnia!\n"
+    text_description = f" Plan: {plan_data.name}\n Cel: {plan_data.goal}\n Split: FBW\n Dni: {plan_data.days_per_week}\n Poziom: {plan_data.difficulty.capitalize()}\n\n"
+    for day in training_plan_structure:
+        text_description += f" Dzień {day['day']}:\n"
+        for ex in day["exercises"]:
+            text_description += f" {ex['muscle']}: {ex['name']} | {ex['sets']}x{ex['reps']}\n"
+        text_description += "\n"
 
-        training_text += "\n"
-
-    # ✅ **ZAPISUJEMY PLAN TRENINGOWY W BAZIE**
     plan = TrainingPlan(
         user_id=user_id,
         name=plan_data.name,
-        split_type=plan_data.split_type,
+        split_type="FBW",
         goal=plan_data.goal,
         days_per_week=plan_data.days_per_week,
         difficulty=plan_data.difficulty,
-        text_description=training_text  
+        text_description=text_description
     )
     db.add(plan)
     db.commit()
     db.refresh(plan)
 
-    return JSONResponse({"training_plan": training_text})
+    pdf_path = generate_training_pdf(plan_data.name, text_description)
+
+    return {
+        "training_plan": training_plan_structure,
+        "summary": {
+            "name": plan_data.name,
+            "goal": plan_data.goal,
+            "split": "FBW",
+            "days": plan_data.days_per_week,
+            "difficulty": plan_data.difficulty
+        },
+        "text_description": text_description,
+        "pdf_path": pdf_path
+    }

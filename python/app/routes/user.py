@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.user import UserInfoCreate, UserInfoOut, UserOut, UserUpdate
 from app.services.user_service import create_user_info, delete_user_info, get_user_info, update_user, update_user_info
+from app.models.user import User
 
 router = APIRouter()
 
@@ -37,3 +38,10 @@ def delete_user_info_endpoint(user_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="User info not found")
     return {"message": "User info deleted successfully"}
+
+@router.get("/{user_id}", response_model=UserOut)
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
