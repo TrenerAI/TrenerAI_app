@@ -1,0 +1,17 @@
+{
+    "name": "trenerai-app",
+    "private": true,
+    "scripts": {
+        "frontend:install": "npm install --prefix react",
+        "frontend:dev": "npm run dev --prefix react",
+        "frontend:build": "npm run build --prefix react",
+        "frontend:preview": "npm run preview --prefix react"
+    },
+    "dependencies": {
+        "lucide-react": "^0.511.0",
+        "react-router-dom": "^7.6.0"
+    },
+    "devDependencies": {
+        "@types/react-router-dom": "^5.3.3"
+    }
+}

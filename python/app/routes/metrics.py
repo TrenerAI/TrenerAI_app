@@ -9,7 +9,6 @@ router = APIRouter()
 
 @router.get("/{user_id}/bmi")
 def get_user_bmi(user_id: int, db: Session = Depends(get_db)):
-    """Obliczanie BMI użytkownika"""
     bmi_data = calculate_bmi(db, user_id)
     if not bmi_data:
         raise HTTPException(status_code=404, detail="Brak danych do obliczenia BMI")
@@ -17,7 +16,6 @@ def get_user_bmi(user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/{user_id}/calories")
 def get_user_caloric_needs(user_id: int, activity_level: float, db: Session = Depends(get_db)):
-    """Oblicza zapotrzebowanie kaloryczne i makroskładniki dla użytkownika."""
     caloric_data = get_caloric_needs(db, user_id, activity_level)
     if not caloric_data:
         raise HTTPException(status_code=404, detail="Brak danych do obliczenia kalorii")

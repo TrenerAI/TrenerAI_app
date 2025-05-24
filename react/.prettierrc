@@ -1,0 +1,27 @@
+{
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "semi": false,
+  "singleQuote": true,
+  "importOrder": [
+    "^react",
+    "<THIRD_PARTY_MODULES>",
+    "^@views",
+    "^@components",
+    "^@types",
+    "^@api",
+    "^@assets",
+    "^@config",
+    "^@middleware",
+    "^@routes",
+    "^@app",
+    "^@",
+    "^[./]"
+  ],
+  "importOrderSortSpecifiers": true,
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports",
+    "@prettier/plugin-xml",
+    "prettier-plugin-tailwindcss"
+  ]
+}

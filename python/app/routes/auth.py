@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
@@ -31,6 +31,31 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     return {"message": "Login successful", "user_id": user.id, "email": user.email}
+
+@router.delete("/users/{user_id}", status_code=204)
+def delete_user_by_id(
+    user_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    """Usuwa użytkownika i jego powiązane dane (UserInfo, TrainingPlan)"""
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Użytkownik nie został znaleziony")
+
+    try:
+        for plan in user.training_plans:
+            db.delete(plan)
+        if user.user_info:
+            db.delete(user.user_info)
+        db.delete(user)
+        db.commit()
+
+        return Response(status_code=204)
+
+    except Exception as e:
+        logger.error(f"Błąd podczas usuwania użytkownika ID {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas usuwania użytkownika")
 
 oauth = OAuth()
 oauth.register(

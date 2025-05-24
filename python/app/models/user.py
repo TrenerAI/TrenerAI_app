@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.models.training import TrainingPlan
 
 class User(Base):
     __tablename__ = "users"
@@ -11,6 +12,7 @@ class User(Base):
     full_name = Column(String, nullable=True)
     google_id = Column(String, unique=True, nullable=True)
 
+    training_plans = relationship("TrainingPlan", back_populates="user")
     user_info = relationship("UserInfo", uselist=False, back_populates="user")
 
 class UserInfo(Base):
