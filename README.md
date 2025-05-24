@@ -29,12 +29,21 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 ```
 O wartości pytaj Cofala  
+
 ### Aby uruchomić wpisz:
+Konsola 1:
 ```bash
+pip install -r requirements.txt
 uvicorn --app-dir python app.main:app --host 127.0.0.1 --reload --port 8088
+```
+Konsola 2:
+```bash
+npm run frontend:install
+npm run frontend:dev
 ```
 
 ### Przydatne
+
 Aktualizacja zależności
 ```bash
 pip freeze > requirements.txt
