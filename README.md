@@ -20,6 +20,7 @@ pip install -r requirements.txt
 ```
 
 ### Sekrety
+Backend:
 Utwórz plik **.env** w głownym katalogu projektu  
 Dodaj do pliku **.env** 
 ```bash
@@ -29,6 +30,13 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 ```
 O wartości pytaj Cofala  
+
+Frontend:
+Utwórz plik **.env** w katalogu react
+Dodaj do pliku **.env**
+```bash
+VITE_API_URL=http://127.0.0.1:8088
+```  
 
 ### Aby uruchomić wpisz:
 Konsola 1:
