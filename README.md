@@ -42,6 +42,15 @@ npm run frontend:install
 npm run frontend:dev
 ```
 
+### Seedowanie bazy po odpaleniu backendu:
+
+```bash
+$env:PYTHONPATH ="sciezka do folderu python"
+np: "C:\Users\barte\Desktop\TrenerAI\TrenerAI_app\python"
+
+py -m app.db_seed
+```
+
 ### Przydatne
 
 Aktualizacja zależności
