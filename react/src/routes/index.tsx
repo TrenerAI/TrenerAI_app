@@ -8,36 +8,36 @@ import RedirectIfAuth from "@components/RedirectIfAuth";
 import Profile from "@views/dashboard/Profile";
 import Metrics from "@views/dashboard/Metrics";
 import Training from "@views/dashboard/Training";
-
+import Chat from "@views/dashboard/Chat";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route
-  path="/login"
-  element={
-    <RedirectIfAuth>
-      <Login />
-    </RedirectIfAuth>
-  }
-/>
+          path="/login"
+          element={
+            <RedirectIfAuth>
+              <Login />
+            </RedirectIfAuth>
+          }
+        />
         <Route
-  path="/register"
-  element={
-    <RedirectIfAuth>
-      <Register />
-    </RedirectIfAuth>
-  }
-/>
+          path="/register"
+          element={
+            <RedirectIfAuth>
+              <Register />
+            </RedirectIfAuth>
+          }
+        />
         <Route
-  path="/setup-profile"
-  element={
-    <RequireAuth>
-      <ProfileSetup />
-    </RequireAuth>
-  }
-/>
+          path="/setup-profile"
+          element={
+            <RequireAuth>
+              <ProfileSetup />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/dashboard"
           element={
@@ -49,6 +49,7 @@ export default function AppRoutes() {
           <Route path="profile" element={<Profile />} />
           <Route path="training" element={<Training />} />
           <Route path="metrics" element={<Metrics />} />
+          <Route path="chat" element={<Chat />} /> 
         </Route>
 
         <Route path="*" element={<Navigate to="/login" />} />

@@ -42,19 +42,28 @@ export default function Sidebar() {
         >
           📊 Metryki
         </NavLink>
+        <NavLink
+          to="/dashboard/chat"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? activeLink : inactiveLink}`
+          }
+        >
+          🧠 Trener Personalny
+        </NavLink>
       </nav>
-          <div className="p-4 border-t border-gray-200 text-sm text-gray-600">
-  <button
-    onClick={handleLogout}
-    className="w-full text-left text-red-500 hover:text-red-700 transition"
-  >
-    🚪 Wyloguj się
-  </button>
-</div>
+
+      <div className="p-4 border-t border-gray-200 text-sm text-gray-600">
+        <button
+          onClick={handleLogout}
+          className="w-full text-left text-red-500 hover:text-red-700 transition"
+        >
+          🚪 Wyloguj się
+        </button>
+      </div>
+
       <div className="p-4 border-t border-gray-200 text-sm text-gray-500">
         &copy; 2025 TrenerAI
       </div>
-      
     </aside>
   );
 }
